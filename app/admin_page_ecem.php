@@ -1,10 +1,14 @@
 <?php
 // Include SimplePie for fetching RSS feeds
 require_once __DIR__ . '/../../vendor/autoload.php';
-
 $feed_url = 'https://tass.com/rss/v2.xml';
+// Initialize SimplePie
 $feed = new SimplePie();
 $feed->set_feed_url($feed_url);
+$feed->force_feed(true);                // Force SimplePie to treat input as RSS
+$feed->set_input_encoding('UTF-8');     // Explicitly set the encoding
+$feed->enable_cache(false);             // Disable caching for debugging
+$feed->set_timeout(10);                 // Timeout for feed fetching
 $feed->init();
 $feed->handle_content_type();
 
