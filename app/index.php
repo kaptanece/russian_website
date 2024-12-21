@@ -11,25 +11,15 @@ if ($conn->connect_error) {
 }
 
 // Handle search and category filtering
-$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$category = isset($_GET['category']) ? $_GET['category'] : '';
 
-// Base query
-$query = "SELECT * FROM news WHERE 1=1";
-
-// Apply search filter
-if (!empty($search)) {
-  $query .= " AND (title LIKE '%$search%' OR content LIKE '%$search%')";
-}
-
-// Apply category filter
+// Vulnerable SQL query (no prepared statements)
+$query = "SELECT * FROM news WHERE (title LIKE '%$search%' OR content LIKE '%$search%')";
 if (!empty($category)) {
   $query .= " AND category = '$category'";
 }
-
-// Order by published date
 $query .= " ORDER BY published_at DESC";
-
 $result = $conn->query($query);
 ?>
 
@@ -63,12 +53,7 @@ $result = $conn->query($query);
 </head>
 <body>
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="text-primary">News Feed</h1>
-    <a href="vulnerabilities/vulnerableLogin.php" class="btn btn-danger header-link">
-      Go to Vulnerable Login Page
-    </a>
-  </div>
+  <h1 class="text-primary">News Feed</h1>
 
   <!-- Search Bar -->
   <form method="GET" action="" class="mb-4">

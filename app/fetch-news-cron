@@ -1,0 +1,2 @@
+# This cron job fetches news every 15 minutes and logs output
+*/15 * * * * php /var/www/html/fetchNews.php >> /var/www/html/fetchNews.log 2>&1

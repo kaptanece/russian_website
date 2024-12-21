@@ -16,6 +16,17 @@ CREATE TABLE users (
                      password VARCHAR(255)
 );
 
+-- Alter the users table to add a role column
+ALTER TABLE users
+  ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user';
+
+-- Update existing users to assign the "user" role
+UPDATE users SET role = 'user' WHERE username != 'admin';
+
+-- Insert the admin user with the admin role
+INSERT INTO users (username, password, role) VALUES
+  ('admin', 'adminpass', 'admin');
+
 INSERT INTO users (username, password) VALUES ('admin', 'password123');
 
 SELECT * FROM news;
@@ -36,3 +47,5 @@ ALTER TABLE news ADD COLUMN full_content TEXT;
 ALTER TABLE news ADD COLUMN categories TEXT;
 
 ALTER TABLE news DROP COLUMN categories;
+
+DESCRIBE news;
