@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     cron \
     && docker-php-ext-install mysqli
 
+# Copy the vendor directory into the container
+COPY vendor/ /var/www/vendor/
 # Copy your application code into the container
 COPY app/ /var/www/html/
 

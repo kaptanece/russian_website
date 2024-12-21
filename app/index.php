@@ -10,16 +10,41 @@ if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle search and category filtering
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$category = isset($_GET['category']) ? $_GET['category'] : '';
+session_start(); // Start the session
 
-// Vulnerable SQL query (no prepared statements)
-$query = "SELECT * FROM news WHERE (title LIKE '%$search%' OR content LIKE '%$search%')";
+// Check login status
+$isLoggedIn = isset($_SESSION['user_id']);
+$isAdmin = $isLoggedIn && $_SESSION['role'] === 'admin';
+
+// Handle search and category filtering
+$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+$category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
+
+// Fetch unique categories from the database
+$categories_result = $conn->query("SELECT DISTINCT category FROM news WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
+$categories = [];
+if ($categories_result) {
+  while ($row = $categories_result->fetch_assoc()) {
+    $categories[] = $row['category'];
+  }
+}
+
+// Base query
+$query = "SELECT * FROM news WHERE 1=1";
+
+// Apply search filter
+if (!empty($search)) {
+  $query .= " AND (title LIKE '%$search%' OR content LIKE '%$search%')";
+}
+
+// Apply category filter
 if (!empty($category)) {
   $query .= " AND category = '$category'";
 }
+
+// Order by published date
 $query .= " ORDER BY published_at DESC";
+
 $result = $conn->query($query);
 ?>
 
@@ -49,11 +74,28 @@ $result = $conn->query($query);
       text-transform: uppercase;
       font-weight: bold;
     }
+    .nav-link {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 <div class="container mt-4">
-  <h1 class="text-primary">News Feed</h1>
+  <nav class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-primary">News Feed</h1>
+    <div>
+      <?php if ($isLoggedIn): ?>
+        <span>Welcome, <?= htmlspecialchars($_SESSION['username']); ?></span>
+        <a href="logout.php" class="btn btn-danger btn-sm ml-3">Logout</a>
+        <?php if ($isAdmin): ?>
+          <a href="admin_dashboard.php" class="btn btn-secondary btn-sm ml-3">Admin Dashboard</a>
+        <?php endif; ?>
+      <?php else: ?>
+        <a href="login.php" class="btn btn-primary btn-sm">Login</a>
+        <a href="register.php" class="btn btn-secondary btn-sm ml-3">Register</a>
+      <?php endif; ?>
+    </div>
+  </nav>
 
   <!-- Search Bar -->
   <form method="GET" action="" class="mb-4">
@@ -69,10 +111,11 @@ $result = $conn->query($query);
   <div class="mb-4">
     <h5>Filter by Category</h5>
     <a href="?category=" class="btn btn-secondary btn-sm <?= empty($category) ? 'active' : ''; ?>">All</a>
-    <a href="?category=politics" class="btn btn-secondary btn-sm <?= $category === 'politics' ? 'active' : ''; ?>">Politics</a>
-    <a href="?category=world" class="btn btn-secondary btn-sm <?= $category === 'world' ? 'active' : ''; ?>">World</a>
-    <a href="?category=economy" class="btn btn-secondary btn-sm <?= $category === 'economy' ? 'active' : ''; ?>">Economy</a>
-    <a href="?category=defense" class="btn btn-secondary btn-sm <?= $category === 'defense' ? 'active' : ''; ?>">Defense</a>
+    <?php foreach ($categories as $cat): ?>
+      <a href="?category=<?= htmlspecialchars($cat); ?>" class="btn btn-secondary btn-sm <?= $category === $cat ? 'active' : ''; ?>">
+        <?= htmlspecialchars($cat); ?>
+      </a>
+    <?php endforeach; ?>
   </div>
 
   <!-- Display News -->
@@ -91,7 +134,7 @@ $result = $conn->query($query);
               <p class="card-text"><?= htmlspecialchars($row['content']); ?></p>
             </div>
             <div class="card-footer bg-white border-0">
-              <a href="details.php?id=<?= $row['id']; ?>" class="btn btn-primary btn-sm btn-read-more">
+              <a href="<?= htmlspecialchars($row['url']); ?>" target="_blank" class="btn btn-primary btn-sm btn-read-more">
                 Read more
               </a>
             </div>

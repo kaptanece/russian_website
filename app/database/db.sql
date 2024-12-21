@@ -48,4 +48,9 @@ ALTER TABLE news ADD COLUMN categories TEXT;
 
 ALTER TABLE news DROP COLUMN categories;
 
-DESCRIBE news;
+
+DELETE FROM users
+WHERE id != 1 AND username = 'admin';
+ALTER TABLE users ADD CONSTRAINT unique_username UNIQUE (username);
+
+SELECT * FROM news;
