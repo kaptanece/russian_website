@@ -1,44 +1,25 @@
 <?php
+// Ensure the database connection is available
 if (!isset($conn)) {
-  $host = 'db';
-  $user = 'root';
-  $pass = 'root';
-  $dbname = 'php_project';
-
-  $conn = new mysqli($host, $user, $pass, $dbname);
-  if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-  }
+  die("Database connection is missing.");
+}
+// Check if the search variable is defined
+if (!isset($search)) {
+  die("Error: Undefined variable 'search'. Ensure it is defined before including this file.");
 }
 
-$message = '';
+// Intentionally reflect user input in different vulnerable contexts
+if (!empty($search)) {
+  // HTML Content Context
+  echo "<div>You searched for: $search</div>";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // Retrieve and escape POST data
-  $title = isset($_POST['title']) ? $conn->real_escape_string($_POST['title']) : '';
-  $content = isset($_POST['content']) ? $conn->real_escape_string($_POST['content']) : '';
-  $category = isset($_POST['category']) ? $conn->real_escape_string($_POST['category']) : '';
-  $url = isset($_POST['url']) ? $conn->real_escape_string($_POST['url']) : '';
-  $published_at = isset($_POST['published_at']) && !empty($_POST['published_at'])
-    ? $conn->real_escape_string($_POST['published_at'])
-    : date('Y-m-d H:i:s');
+  // JavaScript Context
+  echo "<script>console.log('User search: $search');</script>";
 
-  // Check for missing fields
-  if (empty($title) || empty($content) || empty($category) || empty($url)) {
-    $message = "Error: All fields except published_at are required.";
-  } else {
-    // Insert news into the database
-    $query = "INSERT INTO news (title, content, category, url, published_at) 
-              VALUES ('$title', '$content', '$category', '$url', '$published_at')";
+  // HTML Attribute Context
+  echo "<img src='$search' onerror=\"alert('XSS in image source!')\" alt='Test Image'>";
 
-    if ($conn->query($query)) {
-      $message = "News added successfully!";
-    } else {
-      $message = "Error adding news: " . $conn->error;
-    }
-  }
+  // Dynamic Link Context
+  echo "<a href='details.php?query=$search'>Click here for details</a>";
 }
-
-// Do not close the connection here
-echo $message;
 ?>

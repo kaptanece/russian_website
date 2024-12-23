@@ -10,15 +10,34 @@ if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 
-session_start(); // Start the session
+// Start session only if not already started
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 
 // Check login status
 $isLoggedIn = isset($_SESSION['user_id']);
 $isAdmin = $isLoggedIn && $_SESSION['role'] === 'admin';
 
-// Handle search and category filtering
-$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
+
+// Capture input parameters
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$category = isset($_GET['category']) ? $_GET['category'] : '';
+$order_by = isset($_GET['order_by']) ? $_GET['order_by'] : 'published_at';
+$order_dir = isset($_GET['order_dir']) ? $_GET['order_dir'] : 'DESC';
+
+echo "<pre>Search Parameter in index.php: $search</pre>";
+
+
+// Include vulnerable search logic
+$result = include 'vulnerable_search.php';
+
+// Validate the result
+if (!$result instanceof mysqli_result) {
+  die("Error: Invalid query result.");
+}
+// Debugging: Check the number of rows fetched
+echo "Number of rows fetched: " . $result->num_rows . "<br>";
 
 // Fetch unique categories from the database
 $categories_result = $conn->query("SELECT DISTINCT category FROM news WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
@@ -29,23 +48,6 @@ if ($categories_result) {
   }
 }
 
-// Base query
-$query = "SELECT * FROM news WHERE 1=1";
-
-// Apply search filter
-if (!empty($search)) {
-  $query .= " AND (title LIKE '%$search%' OR content LIKE '%$search%')";
-}
-
-// Apply category filter
-if (!empty($category)) {
-  $query .= " AND category = '$category'";
-}
-
-// Order by published date
-$query .= " ORDER BY published_at DESC";
-
-$result = $conn->query($query);
 ?>
 
 <!DOCTYPE html>
@@ -54,30 +56,10 @@ $result = $conn->query($query);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>News Feed</title>
+  <!-- Link to External CSS -->
+  <link href="css/style.css" rel="stylesheet">
   <!-- Bootstrap CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .header-link {
-      margin-bottom: 20px;
-    }
-    .card {
-      margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .card-title {
-      color: #007bff;
-    }
-    .btn-read-more {
-      text-transform: uppercase;
-      font-weight: bold;
-    }
-    .nav-link {
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
 <div class="container mt-4">
@@ -98,14 +80,18 @@ $result = $conn->query($query);
   </nav>
 
   <!-- Search Bar -->
-  <form method="GET" action="" class="mb-4">
+  <!-- Search Bar -->
+  <form method="GET" action="index.php" class="mb-4">
     <div class="input-group">
-      <input type="text" name="search" class="form-control" placeholder="Search News..." value="<?= htmlspecialchars($search); ?>">
+      <input type="text" name="search" class="form-control" placeholder="Search News..." value="<?= $search; ?>">
       <div class="input-group-append">
         <button type="submit" class="btn btn-primary">Search</button>
       </div>
     </div>
   </form>
+
+  <!-- Include Advanced Reflected XSS Vulnerability -->
+  <?php /*include 'vulnerabilities/stored_xss.php'; */?>
 
   <!-- Categories -->
   <div class="mb-4">
@@ -118,20 +104,20 @@ $result = $conn->query($query);
     <?php endforeach; ?>
   </div>
 
-  <!-- Display News -->
+  <
+
   <div class="row">
     <?php if ($result && $result->num_rows > 0): ?>
       <?php while ($row = $result->fetch_assoc()): ?>
         <div class="col-md-6 col-lg-4">
           <div class="card h-100">
-            <?php if (!empty($row['image_url'])): ?>
-              <img src="<?= htmlspecialchars($row['image_url']); ?>" class="card-img-top" alt="News Image">
-            <?php else: ?>
-              <img src="placeholder.jpg" class="card-img-top" alt="Placeholder Image">
-            <?php endif; ?>
+            <img src="placeholder.jpg" class="card-img-top" alt="News Image">
             <div class="card-body">
               <h5 class="card-title"><?= htmlspecialchars($row['title']); ?></h5>
-              <p class="card-text"><?= htmlspecialchars($row['content']); ?></p>
+              <p class="card-text"><?= htmlspecialchars(isset($row['content']) ? $row['content'] : 'No content available'); ?></p>
+
+              <p class="text-muted"><small>Category: <?= htmlspecialchars($row['category']); ?></small></p>
+              <p class="text-muted"><small>Published: <?= htmlspecialchars($row['published_at']); ?></small></p>
             </div>
             <div class="card-footer bg-white border-0">
               <a href="<?= htmlspecialchars($row['url']); ?>" target="_blank" class="btn btn-primary btn-sm btn-read-more">
@@ -147,9 +133,10 @@ $result = $conn->query($query);
       </div>
     <?php endif; ?>
   </div>
-</div>
 
-<!-- Bootstrap JS -->
+
+
+  <!-- Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

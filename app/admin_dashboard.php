@@ -25,8 +25,10 @@ $message = '';
 $users = [];
 
 // Handle user search
+// Include the vulnerable user search logic if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
-  $search = $_POST['search'];
+  include __DIR__ . '/vulnerabilities/sql_injection2.php';
+}
 
   // Vulnerable query
 
@@ -40,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
   } else {
     $message = "Error: " . $conn->error;
   } */
-}
+
 
 // File upload logic
-$upload_dir = __DIR__ . '/uploads/';
+/*$upload_dir = __DIR__ . '/uploads/';
 if (!file_exists($upload_dir)) {
   mkdir($upload_dir, 0777, true);
 }
@@ -66,13 +68,13 @@ if (isset($_POST['delete_file'])) {
     unlink($file_to_delete);
     $message = "<p style='color: green;'>File deleted successfully!</p>";
   }
-}
+}*/
 
-// Include the stored_xss.php file if a form is submitted
+/*// Include the stored_xss.php file if a form is submitted
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
   include __DIR__ . '/vulnerabilities/stored_xss.php';
-}
+}*/
 // Fetch RSS feed
 require_once '/var/www/vendor/autoload.php';
 
@@ -144,8 +146,18 @@ $conn->close();
     <?php endif; ?>
   </div>
 
+  <div class="card mb-4">
+    <h2>Ping a Host</h2>
+    <form method="GET" action="vulnerabilities/os_command.php">
+      <div class="mb-3">
+        <label for="ip" class="form-label">Enter IP/Hostname</label>
+        <input type="text" class="form-control" id="ip" name="ip" placeholder="e.g., 8.8.8.8" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Ping</button>
+    </form>
+  </div>
 
-  <!-- Add News Section -->
+
   <!-- Add News Section -->
   <div class="card mb-4">
     <h2>Add News</h2>
@@ -205,12 +217,10 @@ $conn->close();
   </div>-->
 
   <!-- File Upload Section -->
+  <!-- File Upload Section -->
   <div class="card">
-    <h2>Upload a File</h2>
-    <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="file" required>
-      <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
+    <h2>File Upload</h2>
+    <a href="vulnerabilities/file_upload.php" class="btn btn-primary">Go to File Upload</a>
   </div>
 
   <!-- File Delete Section -->

@@ -16,37 +16,34 @@ session_set_cookie_params(1800);
 
 session_start();
 $message = '';
+$debug_query = ''; // To display the generated query for debugging
+$query_error = ''; // To capture SQL errors
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $username = $conn->real_escape_string($_POST['username']);
+  // Retrieve inputs directly without sanitization
+  $username = $_POST['username'];
   $password = $_POST['password'];
 
-  // Fetch user from the database
-  $query = "SELECT * FROM users WHERE username = '$username'";
-  $result = $conn->query($query);
+  // Intentionally vulnerable SQL query
+  $sql = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+  $debug_query = $sql; // Capture the generated query for debugging
 
-  if ($result->num_rows === 1) {
-    $user = $result->fetch_assoc();
-    if (password_verify($password, $user['password'])) {
-      // Set session variables
-      $_SESSION['user_id'] = $user['id'];
-      $_SESSION['username'] = $user['username'];
-      $_SESSION['role'] = $user['role'];
-      $_SESSION['last_activity'] = time(); // Track activity for timeout
+  // Execute the query
+  $result = $conn->query($sql);
 
-      // Redirect based on role
-      if ($user['role'] === 'admin') {
-        header("Location: admin_dashboard.php");
-      } else {
-        header("Location: index.php");
+  // Handle the query result
+  if ($result) {
+    if ($result->num_rows > 0) {
+      $message = "<h3>Login Successful!</h3>";
+      while ($row = $result->fetch_assoc()) {
+        $message .= "User ID: " . $row["id"] . " - Username: " . $row["username"] . "<br>";
       }
-      exit;
     } else {
-      $message = "Invalid username or password.";
+      $message = "<h3>Login Failed</h3>";
     }
   } else {
-    $message = "Invalid username or password.";
+    $query_error = "SQL Error: " . $conn->error;
   }
 }
 
@@ -58,7 +55,7 @@ $conn->close();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Intentionally Vulnerable Login</title>
 </head>
 <body>
 <h1>Login</h1>
@@ -71,6 +68,16 @@ $conn->close();
   <br>
   <button type="submit">Login</button>
 </form>
+
+<!-- Debugging Information -->
+<h2>Debugging Information</h2>
+<p><strong>Generated SQL Query:</strong></p>
+<pre><?= htmlspecialchars($debug_query); ?></pre>
+<?php if (!empty($query_error)): ?>
+  <p style="color: red;"><strong>Error:</strong> <?= htmlspecialchars($query_error); ?></p>
+<?php endif; ?>
+
+<!-- Message -->
 <p><?= $message; ?></p>
 </body>
 </html>

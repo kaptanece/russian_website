@@ -53,4 +53,31 @@ DELETE FROM users
 WHERE id != 1 AND username = 'admin';
 ALTER TABLE users ADD CONSTRAINT unique_username UNIQUE (username);
 
-SELECT * FROM news;
+SELECT * FROM news WHERE 1=1 ORDER BY published_at DESC;
+ALTER TABLE news ADD CONSTRAINT unique_news UNIQUE (title, url, published_at);
+
+SELECT * FROM news
+WHERE 1=1
+  AND (title LIKE '%%' OR 1=1 --
+  OR content LIKE '%%')
+ORDER BY published_at DESC;
+
+SELECT * FROM news WHERE 1=1 AND (title LIKE '%') OR 1=1; -- ) ORDER BY published_at DESC;
+
+SELECT * FROM news WHERE 1=1 AND (title LIKE '%test%' OR content LIKE '%test%');
+
+SELECT @@sql_mode;
+SET sql_mode = '';
+
+-- SELECT * FROM news WHERE 1=1 AND title = '%' UNION SELECT NULL, NULL, NULL, NULL, NULL -- '
+
+ -- SELECT * FROM news WHERE 1=1 AND (title LIKE '%%' OR 1=1 --%' OR content LIKE '%%' OR 1=1 --%')
+
+SELECT * FROM news WHERE 1=1 AND title LIKE '%Technology%' ORDER BY published_at DESC;
+
+
+SELECT * FROM news WHERE 1=1 AND (title LIKE '%% OR 1=1 -- %' OR content LIKE '%% OR 1=1 -- %') ORDER BY published_at DESC
+
+INSERT INTO users (username, password, role)
+VALUES ('adminecem', 'password123', 'admin');
+

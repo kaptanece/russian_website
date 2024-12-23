@@ -1,5 +1,5 @@
 <?php
-// Database connection
+/*// Database connection
 $host = 'db';
 $user = 'root';
 $pass = 'root';
@@ -18,7 +18,7 @@ if ($result && $result->num_rows > 0) {
         $images[] = $row['file_path'];
     }
 }
-?>
+*/?><!--
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +30,7 @@ if ($result && $result->num_rows > 0) {
         button { margin-top: 10px; padding: 10px; font-size: 16px; cursor: pointer; }
     </style>
     <script>
-        let images = <?php echo json_encode($images); ?>;
+        let images = <?php /*echo json_encode($images); */?>;
         let currentIndex = 0;
 
         function showImage(index) {
@@ -57,7 +57,7 @@ if ($result && $result->num_rows > 0) {
 <body>
     <h1>Latest Russian News</h1>
 
-    <?php if (!empty($images)): ?>
+    <?php /*if (!empty($images)): */?>
         <div class="carousel">
             <img id="carousel-img" src="" alt="Uploaded Image">
             <div>
@@ -65,8 +65,9 @@ if ($result && $result->num_rows > 0) {
                 <button onclick="nextImage()">Next ⟩</button>
             </div>
         </div>
-    <?php else: ?>
+    <?php /*else: */?>
         <p>No uploaded images yet.</p>
-    <?php endif; ?>
+    <?php /*endif; */?>
 </body>
 </html>
+-->

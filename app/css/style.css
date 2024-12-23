@@ -1,0 +1,26 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.card-img-top {
+  object-fit: cover; /* Ensures the image fits properly */
+  height: 200px;     /* Sets the maximum height for the image */
+  width: 100%;       /* Ensures the image spans the card width */
+}
+
+.card {
+  margin-bottom: 20px;
+}
+
+.card-title {
+  color: #007bff;
+}
+
+.btn-read-more {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.nav-link {
+  font-weight: bold;
+}
