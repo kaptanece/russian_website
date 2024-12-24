@@ -67,7 +67,7 @@ services:
       MYSQL_DATABASE: patched_db
     volumes:
       - db_patched_data:/var/lib/mysql
-      - ./patched/database/db_patched.sql:/docker-entrypoint-initdb.d/db_patched.sql  # Mount initialization script
+      - ./patched/app/database/db_patched.sql:/docker-entrypoint-initdb.d/db_patched.sql  # Mount initialization script
     networks:
       - app_network  # Ensure db_patched is on the same network as the other services
     ports:
