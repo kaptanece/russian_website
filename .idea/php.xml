@@ -36,6 +36,8 @@
     <include_path>
       <path value="$PROJECT_DIR$/vendor/simplepie/simplepie" />
       <path value="$PROJECT_DIR$/vendor/composer" />
+      <path value="$PROJECT_DIR$/patched/vendor/simplepie/simplepie" />
+      <path value="$PROJECT_DIR$/patched/vendor/composer" />
     </include_path>
   </component>
   <component name="PhpInterpreters">
@@ -50,6 +52,9 @@
         </remote_data>
       </interpreter>
     </interpreters>
+  </component>
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.1">
+    <option name="suggestChangeDefaultLanguageLevel" value="false" />
   </component>
   <component name="PhpStan">
     <PhpStan_settings>

@@ -1,34 +1,84 @@
 version: '3.8'
 
 services:
-  web:
+  vulnerable:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./vulnerability
+      dockerfile: ../common/Dockerfile  # Assuming common Dockerfile
     ports:
-      - "8080:80"              # Map port 80 in the container to 8080 on the host
+      - "8080:80"
     volumes:
-      - ./app:/var/www/html    # Mount the app directory for live updates
-      - ./vendor:/var/www/vendor # Include vendor if using Composer
-    depends_on:
-      - db                     # Ensure the database container starts first
+      - ./vulnerability/app:/var/www/html
+      - ./vendor:/var/www/vendor
     environment:
-      APACHE_DOCUMENT_ROOT: /var/www/html # Ensure proper document root for Apache
+      - MYSQL_HOST=db_vulnerable
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root_password
+      - MYSQL_DB=vulnerable_db
+    depends_on:
+      - db_vulnerable
+    networks:
+      - app_network  # Explicitly connect to the app_network
+
+  patched:
+    build:
+      context: ./patched
+      dockerfile: ../common/Dockerfile  # Same common Dockerfile
+    ports:
+      - "8081:80"
+    volumes:
+      - ./patched/app:/var/www/html
+      - ./vendor:/var/www/vendor
+    environment:
+      - MYSQL_HOST=db_patched
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root_password
+      - MYSQL_DB=patched_db
+    depends_on:
+      - db_patched
+    networks:
+      - app_network  # Explicitly connect to the app_network
+
+  db_vulnerable:
+    image: mysql:5.7
+    container_name: db_vulnerable
+    platform: linux/amd64
     restart: always
 
-  db:
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: vulnerable_db
+    command: --bind-address=0.0.0.0
+    volumes:
+      - db_vulnerable_data:/var/lib/mysql
+    networks:
+      - app_network  # Ensure db_vulnerable is on the same network as the other services
+    ports:
+      - "3308:3306"  # Expose MySQL port to the host (only if needed)
+
+  db_patched:
     image: mysql:5.7
-    container_name: mysql
+    container_name: db_patched
     platform: linux/amd64
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: php_project
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: patched_db
     volumes:
-      - db_data:/var/lib/mysql
-      - ./app/database/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - db_patched_data:/var/lib/mysql
+      - ./patched/database/patched.sql:/docker-entrypoint-initdb.d/patched.sql  # Mount initialization script
+    networks:
+      - app_network  # Ensure db_patched is on the same network as the other services
     ports:
-      - "3307:3306"
+      - "3307:3306"  # Expose MySQL port to the host (only if needed)
+
+
+
 
 volumes:
-  db_data:
+  db_vulnerable_data:
+  db_patched_data:
+
+networks:
+  app_network:
+    driver: bridge
