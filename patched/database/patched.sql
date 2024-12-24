@@ -2,8 +2,6 @@ CREATE DATABASE IF NOT EXISTS patched_db;
 USE patched_db;
 
 
-DESCRIBE news;
-
 -- Create the `news` table
 CREATE TABLE IF NOT EXISTS news (
                                   id INT AUTO_INCREMENT PRIMARY KEY,
