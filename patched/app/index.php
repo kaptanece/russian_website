@@ -54,17 +54,23 @@ if (!$result instanceof mysqli_result) {
   die("Error: Invalid query result.");
 }
 
-// Debugging: Check the number of rows fetched
-echo "Number of rows fetched: " . $result->num_rows . "<br>";
-
-// Fetch unique categories from the database
 $categories_result = $conn->query("SELECT DISTINCT category FROM news WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
+
 $categories = [];
 if ($categories_result) {
   while ($row = $categories_result->fetch_assoc()) {
-    $categories[] = $row['category'];
+    // Decode HTML entities (e.g., '&amp;' to '&')
+    $category = html_entity_decode($row['category'], ENT_QUOTES | ENT_HTML5);
+
+    // Remove the ampersand (&) if it still exists after decoding
+    $category = str_replace("amp;", "", $category);
+
+    // Add the sanitized category to the list
+    $categories[] = $category;
   }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -110,7 +116,9 @@ if ($categories_result) {
       <a href="?category=<?= htmlspecialchars($cat); ?>" class="btn btn-secondary btn-sm <?= $category === $cat ? 'active' : ''; ?>">
         <?= htmlspecialchars($cat); ?>
       </a>
+
     <?php endforeach; ?>
+
   </div>
 
   <div class="row">
@@ -118,7 +126,7 @@ if ($categories_result) {
       <?php while ($row = $result->fetch_assoc()): ?>
         <div class="col-md-6 col-lg-4">
           <div class="card h-100">
-            <img src="placeholder.jpg" class="card-img-top" alt="News Image">
+            <img src="<?= htmlspecialchars($row['image_url']) ?: 'placeholder.jpg'; ?>" class="card-img-top" alt="News Image">
             <div class="card-body">
               <h5 class="card-title"><?= htmlspecialchars($row['title']); ?></h5>
               <p class="card-text"><?= htmlspecialchars(isset($row['content']) ? $row['content'] : 'No content available'); ?></p>
