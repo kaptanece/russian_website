@@ -1,55 +1,46 @@
 <?php
 $upload_dir = __DIR__ . '/uploads/';
 
-// Ensure the upload directory exists
+// Ensure the upload directory exists with secure permissions
 if (!file_exists($upload_dir)) {
-  mkdir($upload_dir, 0777, true);
+  mkdir($upload_dir, 0755, true); // Use secure permissions
 }
 
-// File upload validation and handling
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
+  // Validate uploaded file
+  $allowed_types = ['image/jpeg', 'image/png', 'application/pdf']; // Allow only specific file types
+  $file_type = $_FILES['file']['type'];
   $file_name = basename($_FILES['file']['name']);
-  $file_tmp_name = $_FILES['file']['tmp_name'];
-  $file_size = $_FILES['file']['size'];
-  $file_error = $_FILES['file']['error'];
+  $target_path = $upload_dir . $file_name;
 
-  // Set allowed file types (e.g., only images)
-  $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
-  $file_type = mime_content_type($file_tmp_name);
-
-  // Check if file type is allowed
+  // Check file type
   if (!in_array($file_type, $allowed_types)) {
-    echo "<p>Invalid file type. Only JPG, PNG, GIF, and PDF files are allowed.</p>";
+    echo "<p style='color: red;'>Invalid file type. Only JPEG, PNG, and PDF files are allowed.</p>";
     exit;
   }
 
-  // Check file size (e.g., limit to 5MB)
-  $max_file_size = 5 * 1024 * 1024; // 5MB
-  if ($file_size > $max_file_size) {
-    echo "<p>File is too large. Maximum file size is 5MB.</p>";
-    exit;
-  }
+  // Sanitize file name to prevent directory traversal attacks
+  $file_name = preg_replace("/[^a-zA-Z0-9._-]/", "_", $file_name);
+  $target_path = $upload_dir . $file_name;
 
-  // Check for upload errors
-  if ($file_error !== UPLOAD_ERR_OK) {
-    echo "<p>File upload error. Please try again.</p>";
-    exit;
-  }
-
-  // Prevent directory traversal by removing any potential special characters from the filename
-  $safe_file_name = preg_replace("/[^a-zA-Z0-9\._-]/", "_", $file_name);
-  $target_path = $upload_dir . $safe_file_name;
-
-  // Move the uploaded file to the target directory
-  if (move_uploaded_file($file_tmp_name, $target_path)) {
-    echo "<p>File uploaded successfully! File Path: <a href='uploads/$safe_file_name'>uploads/$safe_file_name</a></p>";
+  // Move the uploaded file securely
+  if (move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
+    echo "<p>File uploaded successfully! File Path: <a href='uploads/$file_name'>uploads/$file_name</a></p>";
   } else {
-    echo "<p>File upload failed. Please try again.</p>";
+    echo "<p style='color: red;'>File upload failed.</p>";
   }
-} else {
-  echo '<form method="POST" enctype="multipart/form-data">
-          <input type="file" name="file" required>
-          <button type="submit">Upload</button>
-        </form>';
+}
+
+// File Delete Logic - Securely implemented
+if (isset($_POST['delete_file'])) {
+  $file_to_delete = $upload_dir . basename($_POST['delete_file']); // Sanitize input
+
+  // Check if the file exists and is within the allowed directory
+  if (file_exists($file_to_delete) && strpos(realpath($file_to_delete), realpath($upload_dir)) === 0) {
+    unlink($file_to_delete); // Delete the file securely
+    echo "<p style='color: green;'>File deleted successfully!</p>";
+  } else {
+    echo "<p style='color: red;'>File does not exist or cannot be deleted.</p>";
+  }
 }
 ?>
