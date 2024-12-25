@@ -51,33 +51,9 @@ $feed->set_timeout(10);
 $feed->init();
 $feed->handle_content_type();
 
-// File upload handling with security
-$upload_dir = __DIR__ . '/uploads/';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
-  $file = $_FILES['file'];
-  $file_name = basename($file['name']);
-  $file_path = $upload_dir . $file_name;
-  $allowed_types = ['image/jpeg', 'image/png', 'image/gif']; // Allow only certain file types
 
-  // Check if the file type is allowed
-  if (in_array($file['type'], $allowed_types)) {
-    move_uploaded_file($file['tmp_name'], $file_path);
-  } else {
-    $message = 'Invalid file type. Only images are allowed.';
-  }
-}
 
-// Handle file deletion securely
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_file'])) {
-  $file_name = basename($_POST['delete_file']);
-  $file_path = $upload_dir . $file_name;
 
-  if (file_exists($file_path)) {
-    unlink($file_path);
-  } else {
-    $message = 'File not found.';
-  }
-}
 
 $conn->close();
 ?>
@@ -168,7 +144,7 @@ $conn->close();
       </div>
       <button type="submit" class="btn btn-primary">Upload</button>
     </form>
-
+    <?php include 'patched/file_upload.php'; ?>
     <?php
     $upload_dir = __DIR__ . '/uploads/';
     $files = glob($upload_dir . '*');
