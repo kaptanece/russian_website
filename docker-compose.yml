@@ -51,7 +51,7 @@ services:
     command: --bind-address=0.0.0.0
     volumes:
       - db_vulnerable_data:/var/lib/mysql
-      - ./vulnerability/app/database/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./vulnerable_db_dump.sql:/docker-entrypoint-initdb.d/dump.sql
     networks:
       - app_network  # Ensure db_vulnerable is on the same network as the other services
     ports:
@@ -67,7 +67,7 @@ services:
       MYSQL_DATABASE: patched_db
     volumes:
       - db_patched_data:/var/lib/mysql
-      - ./patched/app/database/db_patched.sql:/docker-entrypoint-initdb.d/db_patched.sql  # Mount initialization script
+      - ./patched_db_dump.sql:/docker-entrypoint-initdb.d/dump.sql #initialization script
     networks:
       - app_network  # Ensure db_patched is on the same network as the other services
     ports:
