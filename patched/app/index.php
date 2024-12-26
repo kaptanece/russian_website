@@ -70,6 +70,17 @@ if ($categories_result) {
   }
 }
 
+$allowedFiles = ['example1.php', 'example2.php', 'ssrf.php'];
+if (isset($_GET['file']) && in_array($_GET['file'], $allowedFiles)) {
+    $filePath = _DIR_ . '/vulnerabilities/' . $_GET['file'];
+    if (realpath($filePath) && strpos(realpath($filePath), realpath(_DIR_ . '/vulnerabilities/')) === 0) {
+        include($filePath);
+    } else {
+        echo "Error: Invalid file.";
+    }
+} else {
+    echo "Error: Access denied.";
+}
 
 ?>
 
@@ -116,7 +127,7 @@ if ($categories_result) {
       <a href="?category=<?= htmlspecialchars($cat); ?>" class="btn btn-secondary btn-sm <?= $category === $cat ? 'active' : ''; ?>">
         <?= htmlspecialchars($cat); ?>
       </a>
-
+      <?php include 'patched/reflected_xss.php'; ?>
     <?php endforeach; ?>
 
   </div>

@@ -4,42 +4,50 @@ if (!isset($conn)) {
   die("Database connection is missing.");
 }
 
-// Retrieve raw user inputs
-$input_username = isset($_POST['username']) ? trim($_POST['username']) : '';
-$input_password = isset($_POST['password']) ? trim($_POST['password']) : '';
+// Retrieve user inputs securely (no need for raw data handling if using prepared statements)
+$input_username = isset($_POST['username']) ? $_POST['username'] : '';
+$input_password = isset($_POST['password']) ? $_POST['password'] : '';
 
-// PATCHED: Use prepared statements to prevent SQL injection
-if ($stmt = $conn->prepare("SELECT * FROM users WHERE username = ?")) {
-  // Bind parameters (s = string)
-  $stmt->bind_param("s", $input_username);
+// PATCH: Use prepared statements to prevent SQL Injection
+// Instead of directly embedding user input into the query, we use placeholders for the inputs.
 
-  // Execute the statement
-  $stmt->execute();
+// Prepare a parameterized query to prevent SQL Injection
+$query = "SELECT * FROM users WHERE username = ?";
 
-  // Get the result
-  $result = $stmt->get_result();
+// PATCH: Prepare the SQL statement
+$stmt = $conn->prepare($query);
 
-  // Check if a user exists
-  if ($result->num_rows > 0) {
-    $user = $result->fetch_assoc();
+// Check if the prepared statement is successful
+if ($stmt === false) {
+  die("Database query failed: " . $conn->error);
+}
 
-    // Verify the password securely
-    if (password_verify($input_password, $user['password'])) {
-      // Authentication successful
-      echo "Login successful!";
-    } else {
-      // Invalid password
-      echo "Invalid credentials.";
-    }
+// PATCH: Bind the user input parameters to the prepared statement
+$stmt->bind_param("s", $input_username); // Only bind the username since we check the password securely later
+
+// PATCH: Execute the prepared statement
+$stmt->execute();
+
+// PATCH: Get the result from the query
+$result = $stmt->get_result();
+
+// Check if a user exists
+if ($result->num_rows > 0) {
+  $user = $result->fetch_assoc();
+
+  // Verify the password securely using password_verify() (assuming password is hashed in the database)
+  if (password_verify($input_password, $user['password'])) {
+    // Authentication successful
+    echo "Login successful!";
   } else {
-    // No user found
+    // Invalid password
     echo "Invalid credentials.";
   }
-
-  // Close the statement
-  $stmt->close();
 } else {
-  // Handle query preparation error
-  die("Database query failed.");
+  // No user found
+  echo "Invalid credentials.";
 }
+
+// Close the prepared statement
+$stmt->close();
 ?>
