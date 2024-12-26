@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 9.0.1, for macos14.4 (arm64)
+ -- MySQL dump 10.13  Distrib 9.0.1, for macos14.4 (arm64)
 --
 -- Host: localhost    Database: vulnerable_db
 -- ------------------------------------------------------
