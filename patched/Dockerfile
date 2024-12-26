@@ -23,8 +23,7 @@ RUN chmod 0644 /etc/cron.d/fetch-news-cron
 RUN crontab /etc/cron.d/fetch-news-cron
 
 # Start cron and Apache when the container starts
-CMD ["sh", "-c", "cron && apache2-foreground"]
-
+CMD ["sh", "-c", "php /var/www/html/fetchImages.php & apache2-foreground"]
 # Expose port 80 for HTTP access
 EXPOSE 80
 
